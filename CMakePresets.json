@@ -1,0 +1,71 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 21,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "base",
+            "hidden": true,
+            "generator": "Visual Studio 16 2019",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "installDir": "${sourceDir}/install/${presetName}",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        },
+        {
+            "name": "x64",
+            "hidden": true,
+            "inherits": "base",
+            "architecture": {
+                "value": "x64",
+                "strategy": "external"
+            }
+        },
+        {
+            "name": "x64-debug",
+            "displayName": "Dependencies x64 (Debug)",
+            "inherits": "x64",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Debug"
+                }
+            }
+        },
+        {
+            "name": "x64-release",
+            "displayName": "Dependencies x64 (Release)",
+            "inherits": "x64",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": {
+                    "type": "STRING",
+                    "value": "Release"
+                }
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "x64-debug",
+            "configurePreset": "x64-debug",
+            "configuration": "Debug",
+            "targets": [
+                "INSTALL"
+            ]
+        },
+        {
+            "name": "x64-release",
+            "configurePreset": "x64-release",
+            "configuration": "Release",
+            "targets": [
+                "INSTALL"
+            ]
+        }
+    ]
+}

@@ -1,0 +1,13 @@
+diff --git a/cmake/FindSqlite3.cmake b/cmake/FindSqlite3.cmake
+index 06cba0fbd..83431d5c4 100644
+--- a/cmake/FindSqlite3.cmake
++++ b/cmake/FindSqlite3.cmake
+@@ -45,7 +45,7 @@ find_path(SQLITE3_INCLUDE_DIR sqlite3.h
+   "$ENV{INCLUDE}"
+ )
+ 
+-find_library(SQLITE3_LIBRARY NAMES sqlite3_i sqlite3 PATHS
++find_library(SQLITE3_LIBRARY NAMES sqlite3_i sqlite3 sqlite3d PATHS
+   "$ENV{LIB_DIR}/lib"
+   "$ENV{LIB}/lib"
+ )

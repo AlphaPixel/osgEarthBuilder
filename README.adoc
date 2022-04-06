@@ -1,0 +1,6 @@
+# BUILDDEPS
+
+Notes:
+GDAL - For building on Windows, Git must support long filenames.  To do this:
+
+git config --system core.longpaths true
