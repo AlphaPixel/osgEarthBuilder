@@ -1,5 +1,5 @@
 diff --git a/cmake/FindSqlite3.cmake b/cmake/FindSqlite3.cmake
-index 06cba0fbd..83431d5c4 100644
+index 06cba0fb..83431d5c 100644
 --- a/cmake/FindSqlite3.cmake
 +++ b/cmake/FindSqlite3.cmake
 @@ -45,7 +45,7 @@ find_path(SQLITE3_INCLUDE_DIR sqlite3.h
@@ -11,3 +11,29 @@ index 06cba0fbd..83431d5c4 100644
    "$ENV{LIB_DIR}/lib"
    "$ENV{LIB}/lib"
  )
+diff --git a/src/lib_proj.cmake b/src/lib_proj.cmake
+index d63db29a..f782b6ab 100644
+--- a/src/lib_proj.cmake
++++ b/src/lib_proj.cmake
+@@ -464,7 +464,7 @@ if(CURL_ENABLED)
+   target_include_directories(proj PRIVATE ${CURL_INCLUDE_DIR})
+   target_link_libraries(proj
+     PRIVATE
+-      ${CURL_LIBRARY}
++      CURL::libcurl
+       $<$<CXX_COMPILER_ID:MSVC>:ws2_32>
+       $<$<CXX_COMPILER_ID:MSVC>:wldap32>
+       $<$<CXX_COMPILER_ID:MSVC>:advapi32>
+diff --git a/test/unit/CMakeLists.txt b/test/unit/CMakeLists.txt
+index 296f0bb4..248a432a 100644
+--- a/test/unit/CMakeLists.txt
++++ b/test/unit/CMakeLists.txt
+@@ -162,7 +162,7 @@ add_executable(test_network
+ if(CURL_ENABLED)
+   include_directories(${CURL_INCLUDE_DIR})
+   target_compile_definitions(test_network PRIVATE -DCURL_ENABLED)
+-  target_link_libraries(test_network PRIVATE ${CURL_LIBRARY})
++  target_link_libraries(test_network PRIVATE CURL::libcurl)
+ endif()
+ target_link_libraries(test_network
+   PRIVATE GTest::gtest
