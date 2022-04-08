@@ -1,6 +1,11 @@
 # BUILDDEPS
 
 Notes:
-GDAL - For building on Windows, Git must support long filenames.  To do this:
-
+* GDAL - For building on Windows, Git must support long filenames.  To do this:
 git config --system core.longpaths true
+
+
+* VCPKG - make sure any VCPKG integrations are disabled.   If this isn't done, this
+build will pick up libraries from VCPKG instead of locally built.
+
+

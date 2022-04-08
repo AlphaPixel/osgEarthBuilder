@@ -1,8 +1,13 @@
 cmake_minimum_required(VERSION 3.20)
 
+project(osgEarthBuilder)
+
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
     set(CMAKE_BUILD_TYPE "Debug")
 endif()
+
+# Add the install prefix to CMAKE_PREFIX_PATH
+list(APPEND CMAKE_PREFIX_PATH "${CMAKE_INSTALL_PREFIX}"})
 
 # include(FetchContent)
 include(ExternalProject)
@@ -40,7 +45,7 @@ ExternalProject_Add(
     DEPENDS        libzlib
     CMAKE_ARGS
         -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-        -DCMAKE_PREFIX_PATH=${CMAKE_INSTALL_PREFIX}
+        -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
         -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
 )
 
@@ -54,7 +59,7 @@ ExternalProject_Add(
     DEPENDS        libzlib
     CMAKE_ARGS
         -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-        -DCMAKE_PREFIX_PATH=${CMAKE_INSTALL_PREFIX}
+        -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
         -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
 )
 
@@ -67,7 +72,7 @@ ExternalProject_Add(
     GIT_TAG        3.38.2
     CMAKE_ARGS
         -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-        -DCMAKE_PREFIX_PATH=${CMAKE_INSTALL_PREFIX}
+        -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
         -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
         -DBUILD_SHELL=YES
 )
@@ -81,7 +86,7 @@ ExternalProject_Add(
     GIT_TAG        curl-7_82_0
     CMAKE_ARGS
         -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-        -DCMAKE_PREFIX_PATH=${CMAKE_INSTALL_PREFIX}
+        -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
         -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
         -DCURL_STATIC_CRT=ON
 )
@@ -96,9 +101,11 @@ ExternalProject_Add(
     DEPENDS        libzlib libpng sqlite libtiff libcurl
     CMAKE_ARGS
         -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-        -DCMAKE_PREFIX_PATH=${CMAKE_INSTALL_PREFIX}
+        -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
         -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
-    PATCH_COMMAND  git apply "${CMAKE_SOURCE_DIR}/patches/proj.diff"
+        -DCURL_LIBRARY=CURL::libcurl
+    UPDATE_COMMAND git reset --hard                                     # REMOVE ALL PATCHED CHANGES
+    PATCH_COMMAND  git apply "${CMAKE_SOURCE_DIR}/patches/proj.diff"    # Re-patch
 )
 
 #
@@ -111,28 +118,47 @@ ExternalProject_Add(
     DEPENDS        libzlib libpng proj
     CMAKE_ARGS
         -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-        -DCMAKE_PREFIX_PATH=${CMAKE_INSTALL_PREFIX}
+        -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
         -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
 )
 
 #
 # OpenSceneGraph (OSG)
 #
-# ExternalProject_Add(
-#     osg
-#     GIT_REPOSITORY https://github.com/openscenegraph/OpenSceneGraph.git
-#     GIT_TAG        OpenSceneGraph-3.6.5
-#     DEPENDS        libzlib libpng gdal
-#     CMAKE_ARGS
-#        -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-#         -DCMAKE_PREFIX_PATH=${CMAKE_INSTALL_PREFIX}
-#         -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
-# )
+ExternalProject_Add(
+    osg
+    GIT_REPOSITORY https://github.com/openscenegraph/OpenSceneGraph.git
+    GIT_TAG        OpenSceneGraph-3.6.5
+    DEPENDS        libzlib libpng gdal
+    CMAKE_ARGS
+       -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+       -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
+       -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+       -DCURL_LIBRARY=CURL::libcurl
+)
+
+#
+# osgQT
+#
+ExternalProject_Add(
+    osgqt
+    GIT_REPOSITORY https://github.com/openscenegraph/osgQt.git
+    GIT_TAG        8fa9e2aed141488fa0818219f29e7ee9c7e667b0     # Dated 04/05/2021
+    DEPENDS        osg
+    CMAKE_ARGS
+       -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+       -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
+       -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+       -DBUILD_OSG_EXAMPLES=OFF
+    UPDATE_COMMAND git reset --hard                                     # REMOVE ALL PATCHED CHANGES
+    PATCH_COMMAND  git apply "${CMAKE_SOURCE_DIR}/patches/osgqt.diff"    # Re-patch
+)
 
 #
 # A dummy project that forces the above to be built and installed
 #
-project(osgEarthBuilder)
+#add_custom_target(dummy)
+
 add_library(dummy STATIC dummy.c)
 target_link_libraries(dummy)
 install(TARGETS dummy)

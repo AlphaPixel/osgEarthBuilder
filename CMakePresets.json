@@ -16,6 +16,12 @@
                 "type": "equals",
                 "lhs": "${hostSystemName}",
                 "rhs": "Windows"
+            },
+            "cacheVariables": {
+                "CMAKE_PREFIX_PATH": {
+                    "type": "string",
+                    "value": "z:\\Qt\\5.13.1\\msvc2017_64"
+                }
             }
         },
         {
