@@ -138,16 +138,14 @@ if(DOWNLOAD_ONLY)
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
         INSTALL_COMMAND ""
+        UPDATE_DISCONNECTED YES
     )
 
     ExternalProject_Get_Property(sqlite SOURCE_DIR)
 
-    cmake_path(REPLACE_FILENAME SOURCE_DIR "sqlite-v${SQLITE3_VERSION}" OUTPUT_VARIABLE RENAMED_SOURCE_DIR)
-    
     add_custom_target(zip ALL
-        COMMAND "${CMAKE_COMMAND}" -E rename "${SOURCE_DIR}" "${RENAMED_SOURCE_DIR}"
-        COMMAND "${CMAKE_COMMAND}" -E tar "cfv" "${DOWNLOAD_DIRECTORY}/${SQLITE3_PACKAGE}" --format=zip "${RENAMED_SOURCE_DIR}"
-        WORKING_DIRECTORY "${RENAMED_SOURCE_DIR}/.."
+        COMMAND "${CMAKE_COMMAND}" -E tar "cfv" "${DOWNLOAD_DIRECTORY}/${SQLITE3_PACKAGE}" --format=zip "${SOURCE_DIR}"
+        WORKING_DIRECTORY "${SOURCE_DIR}/.."
         DEPENDS sqlite
     )
 else()
