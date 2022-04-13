@@ -19,23 +19,33 @@ set(DOWNLOAD_DIRECTORY "${CMAKE_SOURCE_DIR}/dist")
 set(LIBZLIB_VERSION "1.2.12")
 set(LIBZLIB_URL "https://github.com/madler/zlib/archive/refs/tags/v${LIBZLIB_VERSION}.zip")
 set(LIBZLIB_PACKAGE "libzlib-v${LIBZLIB_VERSION}.zip")
+set(LIBZLIB_HASH "SHA256=7c9917b80c125e317e44c9d83a4c15390dac9967df27397024beaf4342e0f8cd")
 
 set(LIBTIFF_VERSION "4.3.0")
 set(LIBTIFF_URL "https://gitlab.com/libtiff/libtiff/-/archive/v${LIBTIFF_VERSION}/libtiff-v${LIBTIFF_VERSION}.zip")
 set(LIBTIFF_PACKAGE "libtiff-v${LIBTIFF_VERSION}.zip")
+set(LIBTIFF_HASH "SHA256=4fca1b582c88319f3ad6ecd5b46320eadaf5eb4ef6f6c32d44caaae4a03d0726")
 
 set(LIBPNG_VERSION "1.6.35")
 set(LIBPNG_URL "https://github.com/glennrp/libpng/archive/refs/tags/v${LIBPNG_VERSION}.zip")
 set(LIBPNG_PACKAGE "libpng-v${LIBPNG_VERSION}.zip")
+set(LIBPNG_HASH "SHA256=3d22d46c566b1761a0e15ea397589b3a5f36ac09b7c785382e6470156c04247f")
 
 set(SQLITE3_VERSION "3.38.2")
 set(SQLITE3_URL "https://github.com/azadkuh/sqlite-amalgamation")  # this is a GIT repository since no prebuild source packages are available.
 set(SQLITE3_PACKAGE "sqlite-v${SQLITE3_VERSION}.zip")
+#set(SQLLITE3_HASH "")  No hash calculated here since SQLITE is pulled from GIT and a package created manually.
 
 set(CURL_VERSION "7.82.0")
 string(REPLACE "." "_" CURL_VERSION_UNDERSCORE ${CURL_VERSION})
 set(CURL_URL "https://github.com/curl/curl/releases/download/curl-${CURL_VERSION_UNDERSCORE}/curl-${CURL_VERSION}.zip")
 set(CURL_PACKAGE "curl-v${CURL_VERSION}.zip")
+set(CURL_HASH "SHA256=58a06d7788abbf1c4d326b37f6826d9089b7167187144b6cf2ef2c1851196b90")
+
+set(GEOS_VERSION "3.10.2")
+set(GEOS_URL "https://github.com/libgeos/geos/archive/refs/tags/${GEOS_VERSION}.zip")
+set(GEOS_PACKAGE "geos-v${GEOS_VERSION}.zip")
+set(GEOS_HASH "SHA256=230800ee13172876a3511d3c393a64815eb0b3ff0c435bf2bbf71e1e31e6d715")
 
 #
 # Qt 5
@@ -55,6 +65,7 @@ if(DOWNLOAD_ONLY)
     ExternalProject_Add(
         libzlib
         URL "${LIBZLIB_URL}"
+        URL_HASH "${LIBZLIB_HASH}"
         DOWNLOAD_NAME "${LIBZLIB_PACKAGE}"
         DOWNLOAD_DIR "${DOWNLOAD_DIRECTORY}"
         DOWNLOAD_NO_EXTRACT ON
@@ -80,6 +91,7 @@ if(DOWNLOAD_ONLY)
     ExternalProject_Add(
         libtiff
         URL "${LIBTIFF_URL}"
+        URL_HASH "${LIBTIFF_HASH}"
         DOWNLOAD_NAME "${LIBTIFF_PACKAGE}"
         DOWNLOAD_DIR "${DOWNLOAD_DIRECTORY}"
         DOWNLOAD_NO_EXTRACT ON
@@ -107,6 +119,7 @@ if(DOWNLOAD_ONLY)
     ExternalProject_Add(
         libpng
         URL "${LIBPNG_URL}"
+        URL_HASH "${LIBPNG_HASH}"
         DOWNLOAD_NAME "${LIBPNG_PACKAGE}"
         DOWNLOAD_DIR "${DOWNLOAD_DIRECTORY}"
         DOWNLOAD_NO_EXTRACT ON
@@ -169,6 +182,7 @@ if(DOWNLOAD_ONLY)
     ExternalProject_Add(
         curl
         URL "${CURL_URL}"
+        URL_HASH "${CURL_HASH}"
         DOWNLOAD_NAME "${CURL_PACKAGE}"
         DOWNLOAD_DIR "${DOWNLOAD_DIRECTORY}"
         DOWNLOAD_NO_EXTRACT ON
@@ -189,25 +203,33 @@ else()
     )
 endif()
 
-# #
-# # GEOS (GDAL dependency)
-# #
-# if(DOWNLOAD_ONLY)
-# else()
-#     ExternalProject_Add(
-#         geos
-#         GIT_REPOSITORY https://github.com/libgeos/geos.git
-#         GIT_TAG        3.10.2
-#         DEPENDS        libzlib libpng sqlite libtiff libcurl
-#         CMAKE_ARGS
-#             -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-#             -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
-#             -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
-#             # -DCURL_LIBRARY=CURL::libcurl
-#         # UPDATE_COMMAND git reset --hard                                     # REMOVE ALL PATCHED CHANGES
-#         # PATCH_COMMAND  git apply "${CMAKE_SOURCE_DIR}/patches/proj.diff"    # Re-patch
-#     )
-# endif()
+#
+# GEOS (GDAL dependency)
+#
+if(DOWNLOAD_ONLY)
+    ExternalProject_Add(
+        geos
+        URL "${GEOS_URL}"
+        URL_HASH "${GEOS_HASH}"
+        DOWNLOAD_NAME "${GEOS_PACKAGE}"
+        DOWNLOAD_DIR "${DOWNLOAD_DIRECTORY}"
+        DOWNLOAD_NO_EXTRACT ON
+        DOWNLOAD_NO_PROGRESS ON
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+        INSTALL_COMMAND ""
+    )
+    else()
+    ExternalProject_Add(
+        geos
+        URL "${DOWNLOAD_DIRECTORY}/${GEOS_PACKAGE}"
+        DEPENDS        libzlib libpng sqlite libtiff libcurl
+        CMAKE_ARGS
+            -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+            -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
+            -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+    )
+endif()
 
 # #
 # # PROJ (GDAL dependency)
