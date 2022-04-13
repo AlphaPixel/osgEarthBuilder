@@ -1,5 +1,12 @@
 cmake_minimum_required(VERSION 3.20)
 
+find_program(PATCH_COMMAND 
+    NAMES patch patch.exe 
+    REQUIRED
+    PATHS 
+        "c:/program files/git/usr/bin"
+)
+
 project(osgEarthBuilder)
 
 option(DOWNLOAD_ONLY "Enabled download-only online mode" OFF)
@@ -46,6 +53,11 @@ set(GEOS_VERSION "3.10.2")
 set(GEOS_URL "https://github.com/libgeos/geos/archive/refs/tags/${GEOS_VERSION}.zip")
 set(GEOS_PACKAGE "geos-v${GEOS_VERSION}.zip")
 set(GEOS_HASH "SHA256=230800ee13172876a3511d3c393a64815eb0b3ff0c435bf2bbf71e1e31e6d715")
+
+set(PROJ_VERSION "9.0.0")
+set(PROJ_URL "https://github.com/OSGeo/PROJ/archive/refs/tags/${PROJ_VERSION}.zip")
+set(PROJ_PACKAGE "proj-v${PROJ_VERSION}.zip")
+set(PROJ_HASH "SHA256=ceb2934494543fad738f5aec10752f679c9de5599e76d2c4c49f1bb900b1ce1b")
 
 #
 # Qt 5
@@ -104,7 +116,7 @@ else()
     ExternalProject_Add(
         libtiff
         URL "${DOWNLOAD_DIRECTORY}/${LIBTIFF_PACKAGE}"
-        DEPENDS        libzlib
+        DEPENDS libzlib
         CMAKE_ARGS
             -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
             -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
@@ -132,7 +144,7 @@ else()
     ExternalProject_Add(
         libpng
         URL "${DOWNLOAD_DIRECTORY}/${LIBPNG_PACKAGE}"
-        DEPENDS        libzlib
+        DEPENDS libzlib
         CMAKE_ARGS
             -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
             -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
@@ -195,6 +207,7 @@ else()
     ExternalProject_Add(
         curl
         URL "${DOWNLOAD_DIRECTORY}/${CURL_PACKAGE}"
+        DEPENDS libzlib
         CMAKE_ARGS
             -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
             -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
@@ -223,7 +236,7 @@ if(DOWNLOAD_ONLY)
     ExternalProject_Add(
         geos
         URL "${DOWNLOAD_DIRECTORY}/${GEOS_PACKAGE}"
-        DEPENDS        libzlib libpng sqlite libtiff libcurl
+        DEPENDS libzlib libpng sqlite libtiff curl
         CMAKE_ARGS
             -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
             -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
@@ -231,25 +244,35 @@ if(DOWNLOAD_ONLY)
     )
 endif()
 
-# #
-# # PROJ (GDAL dependency)
-# #
-# if(DOWNLOAD_ONLY)
-# else()
-#     ExternalProject_Add(
-#         proj
-#         GIT_REPOSITORY https://github.com/OSGeo/PROJ.git
-#         GIT_TAG        9.0
-#         DEPENDS        libzlib libpng sqlite libtiff libcurl
-#         CMAKE_ARGS
-#             -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-#             -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
-#             -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
-#             -DCURL_LIBRARY=CURL::libcurl
-#         UPDATE_COMMAND git reset --hard                                     # REMOVE ALL PATCHED CHANGES
-#         PATCH_COMMAND  git apply "${CMAKE_SOURCE_DIR}/patches/proj.diff"    # Re-patch
-#     )
-# endif()
+#
+# PROJ (GDAL dependency)
+#
+if(DOWNLOAD_ONLY)
+    ExternalProject_Add(
+        proj
+        URL "${PROJ_URL}"
+        URL_HASH "${PROJ_HASH}"
+        DOWNLOAD_NAME "${PROJ_PACKAGE}"
+        DOWNLOAD_DIR "${DOWNLOAD_DIRECTORY}"
+        DOWNLOAD_NO_EXTRACT ON
+        DOWNLOAD_NO_PROGRESS ON
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+        INSTALL_COMMAND ""
+    )
+else()
+    ExternalProject_Add(
+        proj
+        URL "${DOWNLOAD_DIRECTORY}/${PROJ_PACKAGE}"
+        DEPENDS libzlib libpng sqlite libtiff curl
+        CMAKE_ARGS
+            -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+            -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
+            -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+            -DCURL_LIBRARY=CURL::libcurl
+        PATCH_COMMAND "${PATCH_COMMAND}" -p1 -i "${CMAKE_SOURCE_DIR}/patches/proj.diff"
+    )
+endif()
 
 # #
 # # GDAL (OSG and osgEarth dependency)
@@ -260,7 +283,7 @@ endif()
 #         gdal
 #         GIT_REPOSITORY https://github.com/OSGeo/gdal.git
 #         GIT_TAG        master    # v3.4.2
-#         DEPENDS        libzlib libpng proj geos
+#         DEPENDS libzlib libpng proj geos
 #         CMAKE_ARGS
 #             -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
 #             -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
@@ -277,7 +300,7 @@ endif()
 #         osg
 #         GIT_REPOSITORY https://github.com/openscenegraph/OpenSceneGraph.git
 #         GIT_TAG        OpenSceneGraph-3.6.5
-#         DEPENDS        libzlib libpng gdal
+#         DEPENDS libzlib libpng gdal
 #         CMAKE_ARGS
 #         -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
 #         -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
@@ -297,7 +320,7 @@ endif()
 #         osgqt
 #         GIT_REPOSITORY https://github.com/openscenegraph/osgQt.git
 #         GIT_TAG        8fa9e2aed141488fa0818219f29e7ee9c7e667b0     # Dated 04/05/2021
-#         DEPENDS        osg
+#         DEPENDS osg
 #         CMAKE_ARGS
 #         -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
 #         -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
@@ -317,7 +340,7 @@ endif()
 #         osgearth
 #         GIT_REPOSITORY https://github.com/gwaldron/osgearth.git
 #         GIT_TAG        3.1
-#         DEPENDS        osg gdal osgqt
+#         DEPENDS osg gdal osgqt
 #         CMAKE_ARGS
 #         -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
 #         -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
