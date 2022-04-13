@@ -1,11 +1,16 @@
 # BUILDDEPS
 
-Notes:
+## Notes
+* Release mode *MUST* be built first, otherwise, osgEARTH won't be able to find OSG (this is silly)
+
 * GDAL - For building on Windows, Git must support long filenames.  To do this:
 git config --system core.longpaths true
-
 
 * VCPKG - make sure any VCPKG integrations are disabled.   If this isn't done, this
 build will pick up libraries from VCPKG instead of locally built.
 
 
+VCPKG Branches:
+2021.4.30
+osgEarth 3.1
+osg 3.6.5
