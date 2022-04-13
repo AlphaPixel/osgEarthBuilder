@@ -16,21 +16,26 @@ include(ExternalProject)
 set(DOWNLOAD_DIRECTORY "${CMAKE_SOURCE_DIR}/dist")
 
 # Versions
-set(LIBZLIB_VERSION "v1.2.12")
-set(LIBZLIB_URL "https://github.com/madler/zlib/archive/refs/tags/${LIBZLIB_VERSION}.zip")
-set(LIBZLIB_PACKAGE "libzlib-${LIBZLIB_VERSION}.zip")
+set(LIBZLIB_VERSION "1.2.12")
+set(LIBZLIB_URL "https://github.com/madler/zlib/archive/refs/tags/v${LIBZLIB_VERSION}.zip")
+set(LIBZLIB_PACKAGE "libzlib-v${LIBZLIB_VERSION}.zip")
 
-set(LIBTIFF_VERSION "v4.3.0")
-set(LIBTIFF_URL "https://gitlab.com/libtiff/libtiff/-/archive/${LIBTIFF_VERSION}/libtiff-${LIBTIFF_VERSION}.zip")
-set(LIBTIFF_PACKAGE "libtiff-${LIBTIFF_VERSION}.zip")
+set(LIBTIFF_VERSION "4.3.0")
+set(LIBTIFF_URL "https://gitlab.com/libtiff/libtiff/-/archive/v${LIBTIFF_VERSION}/libtiff-v${LIBTIFF_VERSION}.zip")
+set(LIBTIFF_PACKAGE "libtiff-v${LIBTIFF_VERSION}.zip")
 
-set(LIBPNG_VERSION "v1.6.35")
-set(LIBPNG_URL "https://github.com/glennrp/libpng/archive/refs/tags/${LIBPNG_VERSION}.zip")
-set(LIBPNG_PACKAGE "libpng-${LIBPNG_VERSION}.zip")
+set(LIBPNG_VERSION "1.6.35")
+set(LIBPNG_URL "https://github.com/glennrp/libpng/archive/refs/tags/v${LIBPNG_VERSION}.zip")
+set(LIBPNG_PACKAGE "libpng-v${LIBPNG_VERSION}.zip")
 
 set(SQLITE3_VERSION "3.38.2")
 set(SQLITE3_URL "https://github.com/azadkuh/sqlite-amalgamation")  # this is a GIT repository since no prebuild source packages are available.
 set(SQLITE3_PACKAGE "sqlite-v${SQLITE3_VERSION}.zip")
+
+set(LIBCURL_VERSION "7.82.0")
+string(REPLACE "." "_" LIBCURL_VERSION_UNDERSCORE ${LIBCURL_VERSION})
+set(LIBCURL_URL "https://github.com/curl/curl/releases/download/curl-${LIBCURL_VERSION_UNDERSCORE}/curl-${LIBCURL_VERSION}.zip")
+set(LIBCURL_PACKAGE "libcurl-v${LIBCURL_VERSION}.zip")
 
 #
 # Qt 5
@@ -129,7 +134,7 @@ if(DOWNLOAD_ONLY)
     ExternalProject_Add(
         sqlite
         GIT_REPOSITORY "${SQLITE3_URL}"
-        GIT_TAG        "v${SQLITE3_VERSION}"
+        GIT_TAG        ${SQLITE3_VERSION}
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
         INSTALL_COMMAND ""
@@ -159,22 +164,32 @@ else()
     )
 endif()
 
-# #
-# # CURL (PROJ dependency)
-# #
-# if(DOWNLOAD_ONLY)
-# else()
-#     ExternalProject_Add(
-#         libcurl
-#         GIT_REPOSITORY https://github.com/curl/curl.git
-#         GIT_TAG        curl-7_82_0
-#         CMAKE_ARGS
-#             -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-#             -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
-#             -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
-#             -DCURL_STATIC_CRT=ON
-#     )
-# endif()
+#
+# CURL (PROJ dependency)
+#
+if(DOWNLOAD_ONLY)
+    ExternalProject_Add(
+        libcurl
+        URL "${LIBCURL_URL}"
+        DOWNLOAD_NAME "${LIBCURL_PACKAGE}"
+        DOWNLOAD_DIR "${DOWNLOAD_DIRECTORY}"
+        DOWNLOAD_NO_EXTRACT ON
+        DOWNLOAD_NO_PROGRESS ON
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+        INSTALL_COMMAND ""
+    )
+else()
+    ExternalProject_Add(
+        libcurl
+        URL "${DOWNLOAD_DIRECTORY}/${LIBCURL_PACKAGE}"
+        CMAKE_ARGS
+            -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+            -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
+            -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+            -DCURL_STATIC_CRT=ON
+    )
+endif()
 
 # #
 # # GEOS (GDAL dependency)
