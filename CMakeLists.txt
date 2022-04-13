@@ -32,10 +32,10 @@ set(SQLITE3_VERSION "3.38.2")
 set(SQLITE3_URL "https://github.com/azadkuh/sqlite-amalgamation")  # this is a GIT repository since no prebuild source packages are available.
 set(SQLITE3_PACKAGE "sqlite-v${SQLITE3_VERSION}.zip")
 
-set(LIBCURL_VERSION "7.82.0")
-string(REPLACE "." "_" LIBCURL_VERSION_UNDERSCORE ${LIBCURL_VERSION})
-set(LIBCURL_URL "https://github.com/curl/curl/releases/download/curl-${LIBCURL_VERSION_UNDERSCORE}/curl-${LIBCURL_VERSION}.zip")
-set(LIBCURL_PACKAGE "libcurl-v${LIBCURL_VERSION}.zip")
+set(CURL_VERSION "7.82.0")
+string(REPLACE "." "_" CURL_VERSION_UNDERSCORE ${CURL_VERSION})
+set(CURL_URL "https://github.com/curl/curl/releases/download/curl-${CURL_VERSION_UNDERSCORE}/curl-${CURL_VERSION}.zip")
+set(CURL_PACKAGE "curl-v${CURL_VERSION}.zip")
 
 #
 # Qt 5
@@ -169,9 +169,9 @@ endif()
 #
 if(DOWNLOAD_ONLY)
     ExternalProject_Add(
-        libcurl
-        URL "${LIBCURL_URL}"
-        DOWNLOAD_NAME "${LIBCURL_PACKAGE}"
+        curl
+        URL "${CURL_URL}"
+        DOWNLOAD_NAME "${CURL_PACKAGE}"
         DOWNLOAD_DIR "${DOWNLOAD_DIRECTORY}"
         DOWNLOAD_NO_EXTRACT ON
         DOWNLOAD_NO_PROGRESS ON
@@ -181,8 +181,8 @@ if(DOWNLOAD_ONLY)
     )
 else()
     ExternalProject_Add(
-        libcurl
-        URL "${DOWNLOAD_DIRECTORY}/${LIBCURL_PACKAGE}"
+        curl
+        URL "${DOWNLOAD_DIRECTORY}/${CURL_PACKAGE}"
         CMAKE_ARGS
             -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
             -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
