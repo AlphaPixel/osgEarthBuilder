@@ -129,7 +129,7 @@ if(DOWNLOAD_ONLY)
     ExternalProject_Add(
         sqlite
         GIT_REPOSITORY "${SQLITE3_URL}"
-        GIT_TAG        ${SQLITE3_VERSION}
+        GIT_TAG        "v${SQLITE3_VERSION}"
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
         INSTALL_COMMAND ""
@@ -138,7 +138,6 @@ if(DOWNLOAD_ONLY)
     ExternalProject_Get_Property(sqlite SOURCE_DIR)
 
     cmake_path(REPLACE_FILENAME SOURCE_DIR "sqlite-v${SQLITE3_VERSION}" OUTPUT_VARIABLE RENAMED_SOURCE_DIR)
-    message(">>>>>>>>> RENAMED_SOURCE_DIR: ${RENAMED_SOURCE_DIR}")
     
     add_custom_target(zip ALL
         COMMAND "${CMAKE_COMMAND}" -E rename "${SOURCE_DIR}" "${RENAMED_SOURCE_DIR}"
