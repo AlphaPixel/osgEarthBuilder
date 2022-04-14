@@ -64,6 +64,16 @@ set(GDAL_URL "https://github.com/OSGeo/gdal.git")
 set(GDAL_PACKAGE "gdal-v${GDAL_VERSION}.zip")
 set(GDAL_HASH "SHA256=7e12a88acf52a3fef55f34cd473d23aef37bb4261eefbd358d1e8d1aea5c05a5")
 
+set(OSG_VERSION "3.6.5")
+set(OSG_URL "https://github.com/openscenegraph/OpenSceneGraph/archive/refs/tags/OpenSceneGraph-${OSG_VERSION}.zip")
+set(OSG_PACKAGE "osg-v${OSG_VERSION}.zip")
+set(OSG_HASH "SHA256=0e9e3e4cc6f463f21a901934a95e9264b231a1d5db90f72dcb4b8cc94b0d1b3b")
+
+set(OSGQT_VERSION "8fa9e2aed141488fa0818219f29e7ee9c7e667b0")   # Master branch as of 2021/4/5
+set(OSGQT_URL "https://github.com/openscenegraph/osgQt.git")
+set(OSGQT_PACKAGE "osgqt-v${OSGQT_VERSION}.zip")
+set(OSGQT_HASH "SHA256=1c61bea6a9f6b61b5c29597a678790d15007d4266afc87193de7afcfba8428ca")
+
 #
 # Qt 5
 #
@@ -167,7 +177,7 @@ if(DOWNLOAD_ONLY)
     ExternalProject_Add(
         sqlite
         GIT_REPOSITORY "${SQLITE3_URL}"
-        GIT_TAG        ${SQLITE3_VERSION}
+        GIT_TAG ${SQLITE3_VERSION}
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
         INSTALL_COMMAND ""
@@ -290,39 +300,11 @@ endif()
 #
 # GDAL (OSG and osgEarth dependency)
 #
-# if(DOWNLOAD_ONLY)
-#     ExternalProject_Add(
-#         gdal
-#         URL "${GDAL_URL}"
-#         URL_HASH "${GDAL_HASH}"
-#         DOWNLOAD_NAME "${GDAL_PACKAGE}"
-#         DOWNLOAD_DIR "${DOWNLOAD_DIRECTORY}"
-#         DOWNLOAD_NO_EXTRACT ON
-#         DOWNLOAD_NO_PROGRESS ON
-#         CONFIGURE_COMMAND ""
-#         BUILD_COMMAND ""
-#         INSTALL_COMMAND ""
-#     )
-# else()
-#     # NOTE: The GDAL patch is from 3.4.2 (commit 649825c2979beab0fc16cc03b74e14b1780acb28) -> master (commit de5c6b3dc4016c2abf055a9c7281e17bdad53e73 - dated 2022/4/12)
-#     #       This patch is necessary to be able to build GDAL with CMake.
-#     ExternalProject_Add(
-#         gdal
-#         URL "${DOWNLOAD_DIRECTORY}/${GDAL_PACKAGE}"
-#         URL_HASH "${GDAL_HASH}"
-#         DEPENDS libzlib libpng proj geos
-#         CMAKE_ARGS
-#             -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-#             -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
-#             -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
-#         PATCH_COMMAND "${PATCH_COMMAND}" -p1 -i "${CMAKE_SOURCE_DIR}/patches/gdal.diff"
-#     )
-# endif()
 if(DOWNLOAD_ONLY)
     ExternalProject_Add(
         gdal
         GIT_REPOSITORY "${GDAL_URL}"
-        GIT_TAG        ${GDAL_VERSION}
+        GIT_TAG ${GDAL_VERSION}
         CONFIGURE_COMMAND ""
         BUILD_COMMAND ""
         INSTALL_COMMAND ""
@@ -352,45 +334,73 @@ else()
     )
 endif()
 
-# #
-# # OpenSceneGraph (OSG)
-# #
-# if(DOWNLOAD_ONLY)
-# else()
-#     ExternalProject_Add(
-#         osg
-#         GIT_REPOSITORY https://github.com/openscenegraph/OpenSceneGraph.git
-#         GIT_TAG        OpenSceneGraph-3.6.5
-#         DEPENDS libzlib libpng gdal
-#         CMAKE_ARGS
-#         -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-#         -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
-#         -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
-#         -DCURL_LIBRARY=CURL::libcurl
-#         UPDATE_COMMAND git reset --hard                                     # REMOVE ALL PATCHED CHANGES
-#         PATCH_COMMAND  git apply "${CMAKE_SOURCE_DIR}/patches/osg.diff"    # Re-patch
-#     )
-# endif()
+#
+# OpenSceneGraph (OSG)
+#
+if(DOWNLOAD_ONLY)
+    ExternalProject_Add(
+        osg
+        URL "${OSG_URL}"
+        URL_HASH "${OSG_HASH}"
+        DOWNLOAD_NAME "${OSG_PACKAGE}"
+        DOWNLOAD_DIR "${DOWNLOAD_DIRECTORY}"
+        DOWNLOAD_NO_EXTRACT ON
+        DOWNLOAD_NO_PROGRESS ON
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+        INSTALL_COMMAND ""
+    )
+else()
+    ExternalProject_Add(
+        osg
+        URL "${DOWNLOAD_DIRECTORY}/${OSG_PACKAGE}"
+        URL_HASH "${OSG_HASH}"
+        DEPENDS libzlib libpng gdal
+        CMAKE_ARGS
+            -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+            -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
+            -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+            -DCURL_LIBRARY=CURL::libcurl
+        PATCH_COMMAND "${PATCH_COMMAND}" -p1 -i "${CMAKE_SOURCE_DIR}/patches/osg.diff"
+    )
+endif()
 
-# #
-# # osgQT
-# #
-# if(DOWNLOAD_ONLY)
-# else()
-#     ExternalProject_Add(
-#         osgqt
-#         GIT_REPOSITORY https://github.com/openscenegraph/osgQt.git
-#         GIT_TAG        8fa9e2aed141488fa0818219f29e7ee9c7e667b0     # Dated 04/05/2021
-#         DEPENDS osg
-#         CMAKE_ARGS
-#         -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-#         -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
-#         -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
-#         -DBUILD_OSG_EXAMPLES=OFF
-#         UPDATE_COMMAND git reset --hard                                     # REMOVE ALL PATCHED CHANGES
-#         PATCH_COMMAND  git apply "${CMAKE_SOURCE_DIR}/patches/osgqt.diff"    # Re-patch
-#     )
-# endif()
+#
+# osgQT
+#
+if(DOWNLOAD_ONLY)
+    ExternalProject_Add(
+        osgqt
+        GIT_REPOSITORY "${OSGQT_URL}"
+        GIT_TAG ${OSGQT_VERSION}
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+        INSTALL_COMMAND ""
+        UPDATE_DISCONNECTED YES
+    )
+
+    ExternalProject_Get_Property(osgqt SOURCE_DIR)
+
+    add_custom_target(osgqt_zip ALL
+        COMMAND "${CMAKE_COMMAND}" -E rm "-rf" "${SOURCE_DIR}/.git*"
+        COMMAND "${CMAKE_COMMAND}" -E tar "cfv" "${DOWNLOAD_DIRECTORY}/${OSGQT_PACKAGE}" --format=zip "${SOURCE_DIR}"
+        WORKING_DIRECTORY "${SOURCE_DIR}/.."
+        DEPENDS osgt
+    )
+else()
+    ExternalProject_Add(
+        osgqt
+        URL "${DOWNLOAD_DIRECTORY}/${OSGQT_PACKAGE}"
+        URL_HASH "${OSGQT_HASH}"
+        DEPENDS osg
+        CMAKE_ARGS
+            -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+            -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
+            -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+            -DBUILD_OSG_EXAMPLES=OFF
+        PATCH_COMMAND "${PATCH_COMMAND}" -p1 -i "${CMAKE_SOURCE_DIR}/patches/osgqt.diff"
+    )
+endif()
 
 # #
 # # osgEarth
