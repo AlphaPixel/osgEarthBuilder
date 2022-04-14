@@ -59,6 +59,11 @@ set(PROJ_URL "https://github.com/OSGeo/PROJ/archive/refs/tags/${PROJ_VERSION}.zi
 set(PROJ_PACKAGE "proj-v${PROJ_VERSION}.zip")
 set(PROJ_HASH "SHA256=ceb2934494543fad738f5aec10752f679c9de5599e76d2c4c49f1bb900b1ce1b")
 
+set(GDAL_VERSION "de5c6b3dc4016c2abf055a9c7281e17bdad53e73")   # Master branch as of 2022/4/12 - needed to build using CMake
+set(GDAL_URL "https://github.com/OSGeo/gdal.git")
+set(GDAL_PACKAGE "gdal-v${GDAL_VERSION}.zip")
+set(GDAL_HASH "SHA256=278d913a2687b50f00195dc807bde918d42587fd0a1b2d1524701cfc56f64f3e")
+
 #
 # Qt 5
 #
@@ -90,6 +95,7 @@ else()
     ExternalProject_Add(
         libzlib
         URL "${DOWNLOAD_DIRECTORY}/${LIBZLIB_PACKAGE}"
+        URL_HASH "${LIBZLIB_HASH}"
         CMAKE_ARGS
             -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
             -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
@@ -116,6 +122,7 @@ else()
     ExternalProject_Add(
         libtiff
         URL "${DOWNLOAD_DIRECTORY}/${LIBTIFF_PACKAGE}"
+        URL_HASH "${LIBTIFF_HASH}"
         DEPENDS libzlib
         CMAKE_ARGS
             -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
@@ -144,6 +151,7 @@ else()
     ExternalProject_Add(
         libpng
         URL "${DOWNLOAD_DIRECTORY}/${LIBPNG_PACKAGE}"
+        URL_HASH "${LIBPNG_HASH}"
         DEPENDS libzlib
         CMAKE_ARGS
             -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
@@ -168,7 +176,8 @@ if(DOWNLOAD_ONLY)
 
     ExternalProject_Get_Property(sqlite SOURCE_DIR)
 
-    add_custom_target(zip ALL
+    add_custom_target(sqlite_zip ALL
+        COMMAND "${CMAKE_COMMAND}" -E rm "-rf" "${SOURCE_DIR}/.git*"
         COMMAND "${CMAKE_COMMAND}" -E tar "cfv" "${DOWNLOAD_DIRECTORY}/${SQLITE3_PACKAGE}" --format=zip "${SOURCE_DIR}"
         WORKING_DIRECTORY "${SOURCE_DIR}/.."
         DEPENDS sqlite
@@ -207,6 +216,7 @@ else()
     ExternalProject_Add(
         curl
         URL "${DOWNLOAD_DIRECTORY}/${CURL_PACKAGE}"
+        URL_HASH "${CURL_HASH}"
         DEPENDS libzlib
         CMAKE_ARGS
             -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
@@ -236,6 +246,7 @@ if(DOWNLOAD_ONLY)
     ExternalProject_Add(
         geos
         URL "${DOWNLOAD_DIRECTORY}/${GEOS_PACKAGE}"
+        URL_HASH "${GEOS_HASH}"
         DEPENDS libzlib libpng sqlite libtiff curl
         CMAKE_ARGS
             -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
@@ -264,6 +275,7 @@ else()
     ExternalProject_Add(
         proj
         URL "${DOWNLOAD_DIRECTORY}/${PROJ_PACKAGE}"
+        URL_HASH "${PROJ_HASH}"
         DEPENDS libzlib libpng sqlite libtiff curl
         CMAKE_ARGS
             -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
@@ -274,22 +286,70 @@ else()
     )
 endif()
 
-# #
-# # GDAL (OSG and osgEarth dependency)
-# #
+#
+# GDAL (OSG and osgEarth dependency)
+#
 # if(DOWNLOAD_ONLY)
-# else()
 #     ExternalProject_Add(
 #         gdal
-#         GIT_REPOSITORY https://github.com/OSGeo/gdal.git
-#         GIT_TAG        master    # v3.4.2
+#         URL "${GDAL_URL}"
+#         URL_HASH "${GDAL_HASH}"
+#         DOWNLOAD_NAME "${GDAL_PACKAGE}"
+#         DOWNLOAD_DIR "${DOWNLOAD_DIRECTORY}"
+#         DOWNLOAD_NO_EXTRACT ON
+#         DOWNLOAD_NO_PROGRESS ON
+#         CONFIGURE_COMMAND ""
+#         BUILD_COMMAND ""
+#         INSTALL_COMMAND ""
+#     )
+# else()
+#     # NOTE: The GDAL patch is from 3.4.2 (commit 649825c2979beab0fc16cc03b74e14b1780acb28) -> master (commit de5c6b3dc4016c2abf055a9c7281e17bdad53e73 - dated 2022/4/12)
+#     #       This patch is necessary to be able to build GDAL with CMake.
+#     ExternalProject_Add(
+#         gdal
+#         URL "${DOWNLOAD_DIRECTORY}/${GDAL_PACKAGE}"
+#         URL_HASH "${GDAL_HASH}"
 #         DEPENDS libzlib libpng proj geos
 #         CMAKE_ARGS
 #             -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
 #             -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
 #             -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+#         PATCH_COMMAND "${PATCH_COMMAND}" -p1 -i "${CMAKE_SOURCE_DIR}/patches/gdal.diff"
 #     )
 # endif()
+if(DOWNLOAD_ONLY)
+    ExternalProject_Add(
+        gdal
+        GIT_REPOSITORY "${GDAL_URL}"
+        GIT_TAG        ${GDAL_VERSION}
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+        INSTALL_COMMAND ""
+        UPDATE_DISCONNECTED YES
+    )
+
+    ExternalProject_Get_Property(gdal SOURCE_DIR)
+
+    add_custom_target(gdal_zip ALL
+        COMMAND "${CMAKE_COMMAND}" -E rm "-rf" "${SOURCE_DIR}/.git*"
+        COMMAND "${CMAKE_COMMAND}" -E tar "cfv" "${DOWNLOAD_DIRECTORY}/${GDAL_PACKAGE}" --format=zip "${SOURCE_DIR}"
+        WORKING_DIRECTORY "${SOURCE_DIR}/.."
+        DEPENDS gdal
+    )
+else()
+    # NOTE: The GDAL patch is from 3.4.2 (commit 649825c2979beab0fc16cc03b74e14b1780acb28) -> master (commit de5c6b3dc4016c2abf055a9c7281e17bdad53e73 - dated 2022/4/12)
+    #       This patch is necessary to be able to build GDAL with CMake.
+    ExternalProject_Add(
+        gdal
+        URL "${DOWNLOAD_DIRECTORY}/${GDAL_PACKAGE}"
+        URL_HASH "${GDAL_HASH}"
+        DEPENDS libzlib libpng proj geos
+        CMAKE_ARGS
+            -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+            -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
+            -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+    )
+endif()
 
 # #
 # # OpenSceneGraph (OSG)
