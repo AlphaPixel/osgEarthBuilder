@@ -62,7 +62,7 @@ set(PROJ_HASH "SHA256=ceb2934494543fad738f5aec10752f679c9de5599e76d2c4c49f1bb900
 set(GDAL_VERSION "de5c6b3dc4016c2abf055a9c7281e17bdad53e73")   # Master branch as of 2022/4/12 - needed to build using CMake
 set(GDAL_URL "https://github.com/OSGeo/gdal.git")
 set(GDAL_PACKAGE "gdal-v${GDAL_VERSION}.zip")
-set(GDAL_HASH "SHA256=278d913a2687b50f00195dc807bde918d42587fd0a1b2d1524701cfc56f64f3e")
+set(GDAL_HASH "SHA256=7e12a88acf52a3fef55f34cd473d23aef37bb4261eefbd358d1e8d1aea5c05a5")
 
 #
 # Qt 5
@@ -282,6 +282,7 @@ else()
             -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
             -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
             -DCURL_LIBRARY=CURL::libcurl
+            -DBUILD_TESTING=OFF
         PATCH_COMMAND "${PATCH_COMMAND}" -p1 -i "${CMAKE_SOURCE_DIR}/patches/proj.diff"
     )
 endif()
