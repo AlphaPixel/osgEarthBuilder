@@ -74,6 +74,11 @@ set(OSGQT_URL "https://github.com/openscenegraph/osgQt.git")
 set(OSGQT_PACKAGE "osgqt-v${OSGQT_VERSION}.zip")
 set(OSGQT_HASH "SHA256=1c61bea6a9f6b61b5c29597a678790d15007d4266afc87193de7afcfba8428ca")
 
+set(OSGEARTH_VERSION "3.1")
+set(OSGEARTH_URL "https://github.com/gwaldron/osgearth/archive/refs/tags/osgearth-${OSGEARTH_VERSION}.zip")
+set(OSGEARTH_PACKAGE "osgearth-v${OSGEARTH_VERSION}.zip")
+set(OSGEARTH_HASH "SHA256=9ae9b047d734956a63babd4baf678275b0bccf95dd9dedaa4986722eebce4854")
+
 #
 # Qt 5
 #
@@ -402,31 +407,42 @@ else()
     )
 endif()
 
-# #
-# # osgEarth
-# #
-# if(DOWNLOAD_ONLY)
-# else()
-#     ExternalProject_Add(
-#         osgearth
-#         GIT_REPOSITORY https://github.com/gwaldron/osgearth.git
-#         GIT_TAG        3.1
-#         DEPENDS osg gdal osgqt
-#         CMAKE_ARGS
-#         -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
-#         -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
-#         -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
-#         -DOSGEARTH_BUILD_EXAMPLES=OFF
-#         -DOSGEARTH_BUILD_TESTS=OFF
-#         -DOSGEARTH_BUILD_DOCS=OFF
-#         -DOSGEARTH_BUILD_PROCEDURAL_NODEKIT=OFF
-#         -DOSGEARTH_BUILD_TRITON_NODEKIT=OFF
-#         -DOSGEARTH_BUILD_SILVERLINING_NODEKIT=OFF
-#         -DOSG_DIR=${CMAKE_INSTALL_PREFIX}
-#         UPDATE_COMMAND git reset --hard                                         # REMOVE ALL PATCHED CHANGES
-#         PATCH_COMMAND  git apply "${CMAKE_SOURCE_DIR}/patches/osgearth.diff"    # Re-patch
-#     )
-# endif()
+#
+# osgEarth
+#
+if(DOWNLOAD_ONLY)
+    ExternalProject_Add(
+        osgarth
+        URL "${OSGEARTH_URL}"
+        URL_HASH "${OSGEARTH_HASH}"
+        DOWNLOAD_NAME "${OSGEARTH_PACKAGE}"
+        DOWNLOAD_DIR "${DOWNLOAD_DIRECTORY}"
+        DOWNLOAD_NO_EXTRACT ON
+        DOWNLOAD_NO_PROGRESS ON
+        CONFIGURE_COMMAND ""
+        BUILD_COMMAND ""
+        INSTALL_COMMAND ""
+    )
+else()
+    ExternalProject_Add(
+        osgearth
+        URL "${DOWNLOAD_DIRECTORY}/${OSGEARTH_PACKAGE}"
+        URL_HASH "${OSGEARTH_HASH}"
+        DEPENDS osg gdal osgqt
+        CMAKE_ARGS
+            -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+            -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
+            -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
+            -DOSGEARTH_BUILD_EXAMPLES=OFF
+            -DOSGEARTH_BUILD_TESTS=OFF
+            -DOSGEARTH_BUILD_DOCS=OFF
+            -DOSGEARTH_BUILD_PROCEDURAL_NODEKIT=OFF
+            -DOSGEARTH_BUILD_TRITON_NODEKIT=OFF
+            -DOSGEARTH_BUILD_SILVERLINING_NODEKIT=OFF
+            -DOSG_DIR=${CMAKE_INSTALL_PREFIX}
+        PATCH_COMMAND "${PATCH_COMMAND}" -p1 -i "${CMAKE_SOURCE_DIR}/patches/osgearth.diff"
+    )
+endif()
 
 #
 # A dummy project that forces the above to be built and installed
