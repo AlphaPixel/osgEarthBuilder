@@ -1,0 +1,25 @@
+From e147d03c17c015f57ab97e2388bbbc5677f85217 Mon Sep 17 00:00:00 2001
+From: John Terrell <john@coolpeoplenetworks.com>
+Date: Fri, 15 Apr 2022 10:43:27 -0700
+Subject: [PATCH] WIP
+
+---
+ CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 7345d9d..a7ab1e4 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -40,7 +40,7 @@ endif()
+ add_library(${PROJECT_NAME} STATIC sqlite3.c)
+ set_target_properties(${PROJECT_NAME} PROPERTIES
+     OUTPUT_NAME   sqlite3
+-    PUBLIC_HEADER sqlite3.h
++    PUBLIC_HEADER "sqlite3.h;sqlite3ext.h"
+     DEBUG_POSTFIX d
+     )
+ target_include_directories(${PROJECT_NAME} PUBLIC $<INSTALL_INTERFACE:include>)
+-- 
+2.35.1.windows.2
+
