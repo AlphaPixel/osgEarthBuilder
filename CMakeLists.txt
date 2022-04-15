@@ -62,7 +62,6 @@ set(PROJ_HASH "SHA256=ceb2934494543fad738f5aec10752f679c9de5599e76d2c4c49f1bb900
 set(GDAL_VERSION "de5c6b3dc4016c2abf055a9c7281e17bdad53e73")   # Master branch as of 2022/4/12 - needed to build using CMake
 set(GDAL_URL "https://github.com/OSGeo/gdal.git")
 set(GDAL_PACKAGE "gdal-v${GDAL_VERSION}.zip")
-set(GDAL_HASH "SHA256=7e12a88acf52a3fef55f34cd473d23aef37bb4261eefbd358d1e8d1aea5c05a5")
 
 set(OSG_VERSION "3.6.5")
 set(OSG_URL "https://github.com/openscenegraph/OpenSceneGraph/archive/refs/tags/OpenSceneGraph-${OSG_VERSION}.zip")
@@ -72,7 +71,6 @@ set(OSG_HASH "SHA256=0e9e3e4cc6f463f21a901934a95e9264b231a1d5db90f72dcb4b8cc94b0
 set(OSGQT_VERSION "8fa9e2aed141488fa0818219f29e7ee9c7e667b0")   # Master branch as of 2021/4/5
 set(OSGQT_URL "https://github.com/openscenegraph/osgQt.git")
 set(OSGQT_PACKAGE "osgqt-v${OSGQT_VERSION}.zip")
-set(OSGQT_HASH "SHA256=1c61bea6a9f6b61b5c29597a678790d15007d4266afc87193de7afcfba8428ca")
 
 set(OSGEARTH_VERSION "3.1")
 set(OSGEARTH_URL "https://github.com/gwaldron/osgearth/archive/refs/tags/osgearth-${OSGEARTH_VERSION}.zip")
@@ -208,6 +206,7 @@ else()
             -DBUILD_SHELL=ON
             -DSQLITE_ENABLE_RTREE=ON
             -DSQLITE_OMIT_DECLTYPE=OFF
+        PATCH_COMMAND "${PATCH_COMMAND}" -p1 -i "${CMAKE_SOURCE_DIR}/patches/sqlite3.diff"
     )
 endif()
 
@@ -330,7 +329,6 @@ else()
     ExternalProject_Add(
         gdal
         URL "${DOWNLOAD_DIRECTORY}/${GDAL_PACKAGE}"
-        URL_HASH "${GDAL_HASH}"
         DEPENDS libzlib libpng proj geos
         CMAKE_ARGS
             -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
@@ -396,7 +394,6 @@ else()
     ExternalProject_Add(
         osgqt
         URL "${DOWNLOAD_DIRECTORY}/${OSGQT_PACKAGE}"
-        URL_HASH "${OSGQT_HASH}"
         DEPENDS osg
         CMAKE_ARGS
             -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
@@ -440,6 +437,7 @@ else()
             -DOSGEARTH_BUILD_TRITON_NODEKIT=OFF
             -DOSGEARTH_BUILD_SILVERLINING_NODEKIT=OFF
             -DOSG_DIR=${CMAKE_INSTALL_PREFIX}
+            -DCURL_LIBRARY=CURL::libcurl
         PATCH_COMMAND "${PATCH_COMMAND}" -p1 -i "${CMAKE_SOURCE_DIR}/patches/osgearth.diff"
     )
 endif()
