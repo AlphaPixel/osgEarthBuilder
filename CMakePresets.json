@@ -7,11 +7,28 @@
     },
     "configurePresets": [
         {
+            "name": "download",
+            "displayName": "Download Only",
+            "generator": "Visual Studio 16 2019",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            },
+            "cacheVariables": {
+                "DOWNLOAD_ONLY": {
+                    "type": "Bool",
+                    "value": "ON"
+                }
+            }
+        },
+        {
             "name": "base",
             "hidden": true,
             "generator": "Visual Studio 16 2019",
             "binaryDir": "${sourceDir}/build/${presetName}",
-            "installDir": "${sourceDir}/install/${presetName}",
+            "installDir": "${sourceDir}/install/",
             "condition": {
                 "type": "equals",
                 "lhs": "${hostSystemName}",
@@ -21,6 +38,10 @@
                 "CMAKE_PREFIX_PATH": {
                     "type": "string",
                     "value": "z:\\Qt\\5.13.1\\msvc2017_64"
+                },
+                "CMAKE_PATCH_EXE_PATH": {
+                    "type": "string",
+                    "value": "c:/program files/git/usr/bin"
                 }
             }
         },
@@ -58,7 +79,14 @@
     ],
     "buildPresets": [
         {
+            "name": "download",
+            "displayName": "Download Only",
+            "configurePreset": "download",
+            "configuration": "Debug"
+        },
+        {
             "name": "x64-debug",
+            "displayName": "Dependencies x64 (Debug)",
             "configurePreset": "x64-debug",
             "configuration": "Debug",
             "targets": [
@@ -67,6 +95,7 @@
         },
         {
             "name": "x64-release",
+            "displayName": "Dependencies x64 (Debug)",
             "configurePreset": "x64-release",
             "configuration": "Release",
             "targets": [
