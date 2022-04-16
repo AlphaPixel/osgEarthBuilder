@@ -1,16 +1,168 @@
-# BUILDDEPS
+# osgEarthBuilder
 
-## Notes
-* Release mode *MUST* be built first, otherwise, osgEARTH won't be able to find OSG (this is silly)
-
-* GDAL - For building on Windows, Git must support long filenames.  To do this:
-git config --system core.longpaths true
-
-* VCPKG - make sure any VCPKG integrations are disabled.   If this isn't done, this
-build will pick up libraries from VCPKG instead of locally built.
+## Prerequisites
+- CMake (version >= 3.21.0)
+- Git (this script uses the 'patch' command included in the Windows version of Git.  For non-Windows, the system supplied 'patch' command is sufficient.)
 
 
-VCPKG Branches:
-2021.4.30
-osgEarth 3.1
-osg 3.6.5
+## Cloning the osgEarthBuilder repository
+
+[source,shell]
+----
+> cd <some directory containing projects>
+> git clone https://github.com/AlphaPixel/osgEarthBuilder.git
+> cd osgEarthBuilder
+----
+
+## Modifications to CMakePresets.json.
+
+### Step 0a: Modify the file CMakePresets.json to contain the location of your Qt on your system.  The default location in the file is:
+
+[source,shell]
+----
+                "CMAKE_PREFIX_PATH": {
+                    "type": "string",
+                    "value": "z:\\Qt\\5.13.1\\msvc2017_64"
+                }
+----
+
+Change the 'value' line above to correctly indicate where Qt is installed on the target (potentially offline) system.
+
+### Step 0b: Modify the file CMakePresets.json to contain the location of the patch.exe command on your system.  The default location in the file is:
+
+[source,shell]
+----
+                "CMAKE_PATCH_EXE_PATH": {
+                    "type": "string",
+                    "value": "c:/program files/git/usr/bin"
+                }
+----
+
+Change the 'value' line above to correctly indicate where patch.exe is installed on the target (potentially offline) system (on Windows, this is normally where 'Git For Windows' is installed.)
+
+## Downloading and building
+
+NOTE: All steps should be performed at the root of the osgEarthBuilder directory tree.
+
+### Step 1: Online dependency retrieval
+
+#### Step 1a: Configure the download script
+
+This step will connect to the internet and download all relevant source dependencies into the 'dist' folder.
+
+[source,shell]
+----
+> cmake --preset download
+----
+
+#### Step 1b: Run the download script ('-build' causes the script that was configured in the previous cmake invocation to be built and run)
+[source,shell]
+----
+> cmake --preset download -build
+----
+
+If you look in the 'dist' folder, you should see all of the downloaded dependencies:
+[source,shell]
+----
+> dir dist
+04/15/2022  04:04 PM    <DIR>          .
+04/15/2022  04:04 PM    <DIR>          ..
+04/15/2022  04:03 PM         6,216,245 curl-v7.82.0.zip
+04/15/2022  04:04 PM       335,175,784 gdal-vde5c6b3dc4016c2abf055a9c7281e17bdad53e73.zip
+04/15/2022  04:04 PM         8,102,229 geos-v3.10.2.zip
+04/15/2022  04:04 PM         1,777,446 libpng-v1.6.35.zip
+04/15/2022  04:04 PM         2,824,159 libtiff-v4.3.0.zip
+04/15/2022  04:04 PM         1,673,677 libzlib-v1.2.12.zip
+04/15/2022  04:04 PM         8,197,497 osg-v3.6.5.zip
+04/15/2022  04:04 PM       123,254,271 osgearth-v3.1.zip
+04/15/2022  04:04 PM        13,666,947 osgqt-v8fa9e2aed141488fa0818219f29e7ee9c7e667b0.zip
+04/15/2022  04:04 PM        40,341,265 proj-v9.0.0.zip
+04/15/2022  04:04 PM        10,209,829 sqlite-v3.38.2.zip
+              11 File(s)    551,439,349 bytes
+----
+
+
+### Step 2 (Optional): Move this directory (and all subdirectories) to an isolated environment
+
+### Step 3: Offline build (can be performed on non-internet connected computers)
+
+Note: It's important to run the following steps in the given order; osgEarth has a requirement that to build its debug versions, the release versions must be built first.
+
+#### Step 3a: Configure the 'Release' build script
+[source,shell]
+----
+> cmake --preset x64-release
+----
+
+When complete, the command should reply with:
+[source,shell]
+----
+-- Configuring done
+-- Generating done
+-- Build files have been written to: osgEarthBuilder/build/x64-release
+----
+
+#### Step 3b: Build the 'Release' versions of the dependencies
+
+This step builds the 'Release' version of the dependencies.
+
+NOTE: This step will take quite a bit of time.
+
+[source,shell]
+----
+> cmake --build --preset x64-release
+----
+
+When complete, this step should return the following.
+
+[source,shell]
+----
+Completed 'osgearth'
+  Building Custom Rule Z:/IGFR/osgEarthBuilder/CMakeLists.txt
+  dummy.c
+  dummy.vcxproj -> Z:\IGFR\osgEarthBuilder\build\x64-release\Release\dummy.lib
+  Building Custom Rule Z:/IGFR/osgEarthBuilder/CMakeLists.txt
+  -- Install configuration: "Release"
+  -- Installing: Z:/IGFR/osgEarthBuilder/install/lib/dummy.lib
+----
+
+#### Step 3c: Configure the 'Debug' build script
+[source,shell]
+----
+> cmake --preset x64-debug
+----
+
+When complete, the command should reply with:
+[source,shell]
+----
+-- Configuring done
+-- Generating done
+-- Build files have been written to: osgEarthBuilder/build/x64-debug
+----
+
+#### Step 3d: Build the 'Debug' versions of the dependencies
+
+This step builds the 'Debug' version of the dependencies.
+
+NOTE: This step will take quite a bit of time.
+
+[source,shell]
+----
+> cmake --build --preset x64-debug
+----
+
+When complete, the command should reply with:
+[source,shell]
+----
+Completed 'osgearth'
+  Building Custom Rule Z:/IGFR/osgEarthBuilder/CMakeLists.txt
+  dummy.c
+  dummy.vcxproj -> Z:\IGFR\osgEarthBuilder\build\x64-debug\Debug\dummy.lib
+  Building Custom Rule Z:/IGFR/osgEarthBuilder/CMakeLists.txt
+  -- Install configuration: "Debug"
+  -- Installing: Z:/IGFR/osgEarthBuilder/install/lib/dummy.lib
+----
+
+### Step 4 - Use the build artifacts created above when building osgEarth related projects.
+
+The directory 'installed' contains the Release and Debug artifacts of all dependencies.

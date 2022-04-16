@@ -4,7 +4,7 @@ find_program(PATCH_COMMAND
     NAMES patch patch.exe 
     REQUIRED
     PATHS 
-        "c:/program files/git/usr/bin"
+        "${CMAKE_PATCH_EXE_PATH}"
 )
 
 project(osgEarthBuilder)
